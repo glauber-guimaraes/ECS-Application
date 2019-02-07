@@ -131,6 +131,15 @@ public:
 		return true;
 	}
 
+	bool Contains(hash typeHash) const {
+		for (u32 i = 0; i < this->Count; i++) {
+			if (this->Hashes[i] == typeHash)
+				return true;
+		}
+
+		return false;
+	}
+
 	u32 GetComponentIndex(hash componentHash) {
 		int componentIndex = -1;
 		for (u32 i = 0; i < Count; i++) {

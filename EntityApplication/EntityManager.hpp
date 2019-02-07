@@ -2,7 +2,8 @@
 #define ENTITYMANAGER_H
 
 #include "EntityGroup.hpp"
-#include "EntityGroupArray.hpp"
+
+#include <vector>
 
 class EntityManager
 {
@@ -57,21 +58,6 @@ public:
 		return m_Entities[entity.index].Version == entity.Version && m_Entities[entity.index].Version != 0;
 	}
 
-	EntityGroupArray* GetEntityGroup(EntityGroup& group) {
-		EntityGroupArray* result = new EntityGroupArray();
-
-		for (auto it = m_ChunkMap.begin(); it != m_ChunkMap.end(); it++) {
-			EntityArchetype arch = it->first;
-			ArchetypeChunk* chunk = it->second;
-
-			if (arch.ContainsAll(group.accept) && arch.ContainsAny(group.reject) == false) {
-				result->AddChunk(chunk->Count(), chunk);
-			}
-		}
-
-		return result;
-	}
-
 	ArchetypeChunk* CreateOrGetChunk(EntityArchetype archetype) {
 		if (archetype.Count == 0)
 			return NULL;
@@ -94,6 +80,14 @@ public:
 	template<typename T>
 	void RemoveComponent() {
 
+	}
+
+	template<typename T>
+	bool HasComponent(Entity entity) {
+		if (m_Entities[entity.index].Version != entity.Version)
+			return false;
+
+		return m_Entities[entity.index].Chunk->Archetype.Contains(typeid(T).hash_code());
 	}
 
 	template<typename T>
@@ -133,6 +127,34 @@ public:
 			}
 		}
 		m_EntitiesFreeIndex = newFreeIndex;
+	}
+
+	template<typename...T>
+	EntityGroup GetEntityGroup(T... componentTypes) {
+		return EntityGroup(this, { componentTypes... }, GetArchetypeChunks({ componentTypes... }));
+	}
+
+	std::vector<ArchetypeChunk*> GetArchetypeChunks(std::vector<ComponentType> typeFilters) {
+		std::vector<ArchetypeChunk*> chunks;
+		for (auto it = m_ChunkMap.begin(); it != m_ChunkMap.end(); it++) {
+			bool failed = false;
+
+			for (auto type : typeFilters) {
+				bool contains = it->first.Contains(type.Hash);
+				bool shouldContain = type.Type == EntityGroupType::Additive;
+				if (contains != shouldContain) {
+					failed = true;
+					break;
+				}
+			}
+
+			if (failed == true)
+				continue;
+
+			chunks.push_back(it->second);
+		}
+
+		return chunks;
 	}
 };
 

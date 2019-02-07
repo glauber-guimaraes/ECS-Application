@@ -102,7 +102,7 @@ public:
 		return false;
 	}
 
-	bool ContainsAll(const EntityArchetype& other) const {
+	bool Contains(const EntityArchetype& other) const {
 		if (other.Count > this->Count)
 			return false;
 
@@ -122,13 +122,10 @@ public:
 		return true;
 	}
 
-	bool ContainsAny(const EntityArchetype& other) const {
-		for (u32 i = 0; i < other.Count; i++) {
-			for (u32 j = 0; j < this->Count; j++) {
-				if (other.Hashes[i] == this->Hashes[j]) {
-					return true;
-				}
-			}
+	bool Contains(hash typeHash) const {
+		for (u32 i = 0; i < this->Count; i++) {
+			if (this->Hashes[i] == typeHash)
+				return true;
 		}
 
 		return false;

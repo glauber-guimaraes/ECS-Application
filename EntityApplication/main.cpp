@@ -21,33 +21,31 @@ struct IComponentData
 {};
 
 struct Health {
-	Health(float v) {
-		Value = v;
-	}
-
 	float Value;
 };
-
-struct Mortal {};
-struct Immortal {};
 
 #define TEST_PRINT_NAME(name) std::cout << "[TEST] " << name << "..............";
 #define TEST_PRINT_PASSED std::cout << "passed.\n";
 #define TEST_PRINT_FAILED(text) std::cout << "failed. " << text << std::endl;
 #define TEST(name, assertion, failureText) TEST_PRINT_NAME(name) \
 												 if (assertion) { TEST_PRINT_PASSED } else { TEST_PRINT_FAILED(failureText) }
+#define TEST_EQUAL(name, expected, result) TEST_PRINT_NAME(name) \
+												if (expected == result) { TEST_PRINT_PASSED } \
+												else { std::cout << "Failed. Expected " << expected << " got " << result << std::endl; }
+
 int main()
 {
     std::cout << "Hello World!\n";
 
-	EntityArchetype archetype = CreateArchetype<int, float, char, Health, Mortal>();
-	EntityArchetype archetype2 = CreateArchetype<int, float, Health, char, Mortal, Immortal>();
-	EntityArchetype archetype3 = CreateArchetype<Health, Mortal, long>();
+	EntityArchetype archetype = CreateArchetype<int, float, char, Health>();
+	EntityArchetype archetype2 = CreateArchetype<int, float, Health, char>();
 	std::cout << "Archetypes are : " << (archetype == archetype2 ? "equal\n" : "not equal\n");
 
 	for (unsigned int i = 0; i < archetype.Count; i++) {
 		std::cout << archetype.Hashes[i] << "\n" << archetype.Sizes[i] << "\n" << archetype.Names[i] << "\n";
 	}
+
+	int a = 2;
 
 	EntityManager entityManager;
 
@@ -59,13 +57,12 @@ int main()
 	entityManager.DestroyEntity(e2);
 
 	entityManager.SetComponentData(e, 2);
-	entityManager.SetComponentData(e, Health(100));
+
+	Health h = { 5 };
+	entityManager.SetComponentData(e, h);
+	entityManager.SetComponentData<Health>(e, { 10 });
+
 	std::cout << entityManager.GetComponentData<int>(e) << "\ne index ";
-
-	entityManager.CreateEntity(archetype2);
-
-	auto e3 = entityManager.CreateEntity(archetype3);
-	entityManager.SetComponentData(e3, Health(200));
 
 	std::cout << "Exists " << entityManager.Exists(e) << entityManager.Exists(e2) << entityManager.Exists(e1) << std::endl;
 
@@ -73,6 +70,8 @@ int main()
 	TEST("Archetype with different component order are the same", archetype == archetype2, "");
 	TEST("Existing entity exists", entityManager.Exists(e), "");
 
+	TEST("Entity has Health component", entityManager.HasComponent<Health>(e), "");
+	TEST("Entity doesn't have Double component", entityManager.HasComponent<double>(e) == false, "");
 	/*
 	std::cout << "e2 index in chunk " << entityManager.m_Entities[e2.index].IndexInChunk << "\n";
 	std::cout << "e index in chunk " << entityManager.m_Entities[e.index].IndexInChunk << "\n";
@@ -84,21 +83,26 @@ int main()
 	std::cout << "e index in chunk " << entityManager.m_Entities[e.index].IndexInChunk << "\n";
 	*/
 
-	// entityManager.HasComponent<X>(entity);
 	// entityManager.AddComponent<X>(entity);
 	// entityManager.AddComponent(entity, X);
 	// entityManager.RemoveComponent<X>(entity);
 	//
-	EntityGroup group (EntityGroupAccept<Health, Mortal>(), 
-						EntityGroupReject<Immortal>());
-	
-	EntityGroupArray* iter = entityManager.GetEntityGroup(group);
-	
+	TEST_EQUAL("ComponentType returns correct hash code", 
+			typeid(Health).hash_code(), ComponentType::Create<Health>().Hash);
 
-	std::cout << "Number of matched entities: " << iter->Length << std::endl;
-	for (size i = 0; i < iter->Length; i++) {
-		std::cout << "Entity " << i << " health: " << iter->GetComponentData<Health>((u32)i).Value << "\n";
+	EntityGroup group = entityManager.GetEntityGroup(ComponentType::Create<Health>(), 
+						ComponentType::Subtractive<double>());
+	
+	auto iter = group.GetComponentArray<Health>();
+	
+	for (int i = 0; i < iter.m_Chunks.size(); i++) {
+		std::cout << iter.m_MaxIndex[i] << std::endl;
+		std::cout << iter.m_TypeIndex[i] << std::endl;
+		std::cout << "" << std::endl;
 	}
 
-	//YourClass<BaseClass> obj;
+	std::cout << "Number of matched entities: " << iter.Length << std::endl;
+	for (int i = 0; i < iter.Length; i++) {
+		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
+	}
 }
