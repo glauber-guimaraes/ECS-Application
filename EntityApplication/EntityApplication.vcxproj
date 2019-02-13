@@ -158,7 +158,6 @@
     <ClInclude Include="EntityArchetype.hpp" />
     <ClInclude Include="EntityChunk.hpp" />
     <ClInclude Include="EntityGroup.hpp" />
-    <ClInclude Include="EntityGroupArray.hpp" />
     <ClInclude Include="EntityManager.hpp" />
     <ClInclude Include="Types.hpp" />
   </ItemGroup>

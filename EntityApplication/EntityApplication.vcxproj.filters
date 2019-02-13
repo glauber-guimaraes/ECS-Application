@@ -34,8 +34,5 @@
     <ClInclude Include="EntityGroup.hpp">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="EntityGroupArray.hpp">
-      <Filter>headers</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
