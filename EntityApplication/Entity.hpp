@@ -19,6 +19,11 @@ public:
 		Version = 0;
 	}
 
+	Entity(const Entity& other) {
+		index = other.index;
+		Version = other.Version;
+	}
+
 	bool operator==(const Entity& other) const {
 		return (index == other.index && Version == other.Version);
 	}
