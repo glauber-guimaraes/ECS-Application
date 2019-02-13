@@ -87,6 +87,11 @@ public:
 		}
 	}
 
+	u32 GetEntityAtIndex(u32 indexInChunk) {
+		u32* EntityDataArray = (u32*)Data;
+		return EntityDataArray[indexInChunk];
+	}
+
 	void* GetComponentAddress(u32 entityIndex, u32 componentIndex) {
 		char* base = Components[componentIndex];
 		return (void*)(base + (entityIndex * Archetype.Sizes[componentIndex]));
