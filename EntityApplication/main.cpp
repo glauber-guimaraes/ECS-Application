@@ -45,8 +45,6 @@ int main()
 		std::cout << archetype.Hashes[i] << "\n" << archetype.Sizes[i] << "\n" << archetype.Names[i] << "\n";
 	}
 
-	int a = 2;
-
 	EntityManager entityManager;
 
 	Entity e1 = entityManager.CreateEntity();
@@ -94,6 +92,7 @@ int main()
 						ComponentType::Subtractive<double>());
 	
 	auto iter = group.GetComponentArray<Health>();
+	auto entityIter = group.GetEntityArray();
 	
 	for (int i = 0; i < iter.m_Chunks.size(); i++) {
 		std::cout << iter.m_MaxIndex[i] << std::endl;
@@ -104,5 +103,6 @@ int main()
 	std::cout << "Number of matched entities: " << iter.Length << std::endl;
 	for (int i = 0; i < iter.Length; i++) {
 		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
+		std::cout << "Entity " << i << " health: " << entityManager.GetComponentData<Health>(entityIter[i]).Value << "\n";
 	}
 }

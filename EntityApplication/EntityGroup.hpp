@@ -34,6 +34,47 @@ public:
 
 };
 
+class EntityArray
+{
+public:
+	std::vector<ArchetypeChunk*> m_Chunks;
+	std::vector<int> m_MaxIndex;
+	int Length;
+
+	EntityArray() {}
+
+	EntityArray(const EntityArray& other) {
+		m_Chunks = other.m_Chunks;
+		m_MaxIndex = other.m_MaxIndex;
+
+		Length = other.Length;
+	}
+
+	Entity operator[](size_t index) {
+		if (index > (*m_MaxIndex.crbegin())) {
+			throw new std::exception();
+		}
+
+		int i = m_MaxIndex.size() - 1;
+		for (; i >= 0; i--) {
+			if (index <= m_MaxIndex[i]) {
+				break;
+			}
+		}
+
+		ArchetypeChunk* chunk = m_Chunks[i];
+		int indexInChunk;
+		if (i == 0) {
+			indexInChunk = (int)index;
+		}
+		else {
+			indexInChunk = (int)index - m_MaxIndex[i - 1];
+		}
+
+		return Entity(chunk->GetEntityAtIndex(indexInChunk), 0);
+	}
+};
+
 template<typename T>
 class ComponentArray
 {
@@ -54,7 +95,7 @@ public:
     }
 
     T& operator[](size_t index) {
-        if (index > (*m_MaxIndex.end())) {
+        if (index > (*m_MaxIndex.crbegin())) {
             throw new std::exception();
         }
         int i = m_MaxIndex.size() - 1;
@@ -105,6 +146,22 @@ public:
 
         return ComponentArray<type>(componentArray);
     }
+
+	EntityArray GetEntityArray() {
+		EntityArray entityArray;
+		int currentIndex = 0;
+		for (int i = 0; i < m_MatchingArchetypes.size(); i++) {
+			ArchetypeChunk* chunk = m_MatchingArchetypes[i];
+			currentIndex += chunk->Count();
+
+			entityArray.m_Chunks.push_back(chunk);
+			entityArray.m_MaxIndex.push_back(currentIndex - 1);
+		}
+
+		entityArray.Length = currentIndex;
+
+		return EntityArray(entityArray);
+	}
 
     EntityManager* m_EntityManager;
     std::vector<ComponentType> m_Types;
