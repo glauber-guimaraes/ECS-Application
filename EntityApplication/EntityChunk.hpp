@@ -15,6 +15,8 @@ public:
 	u32 LastIndex;
 
 	ArchetypeChunk() {
+		Components = NULL;
+		LastIndex = 0;
 	}
 
 	~ArchetypeChunk() {
