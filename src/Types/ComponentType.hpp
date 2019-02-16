@@ -30,6 +30,11 @@ public:
 	}
 
 	template<typename type>
+	static ComponentType CreateReadOnly() {
+		return ComponentType(ComponentAccessMode::ReadOnly, typeid(type).hash_code(), typeid(type).name(), sizeof(type));
+	}
+
+	template<typename type>
 	static ComponentType Subtractive() {
 		return ComponentType(ComponentAccessMode::Subtractive, typeid(type).hash_code(), typeid(type).name(), sizeof(type));
 	}
