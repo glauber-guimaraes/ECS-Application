@@ -62,7 +62,7 @@ public:
 		memcpy((void*)(EntityDataArray + dstIndex), (void*)(EntityDataArray + srcIndex), amount * sizeof(u32));
 
 		// Move EntityComponents
-		for (u32 i = 0; i < Archetype.Count; i++) {
+		for (u32 i = 0; i < Archetype.Count(); i++) {
 			char* base = Components[i];
 			size stripe = Archetype.Sizes[i];
 			memcpy((void*)(base + dstIndex * stripe), (void*)(base + srcIndex * stripe), stripe);
@@ -78,14 +78,14 @@ public:
 
 		if (Components)
 			delete[] Components;
-		Components = new char*[archetype.Count];
+		Components = new char*[archetype.Count()];
 
 		char* Pointer = (char*)Data;
 
 		// List of entity indexes comes first.
 		Pointer += sizeof(u32) * TotalEntities;
 
-		for (unsigned int i = 0; i < archetype.Count; i++) {
+		for (unsigned int i = 0; i < archetype.Count(); i++) {
 			Components[i] = Pointer;
 			Pointer += TotalEntities * archetype.Sizes[i];
 		}

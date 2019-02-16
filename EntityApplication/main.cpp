@@ -42,7 +42,7 @@ int main()
 	std::cout << "Archetypes are : " << (archetype == archetype2 ? "equal\n" : "not equal\n");
 	std::cout << archetype << std::endl;
 
-	for (unsigned int i = 0; i < archetype.Count; i++) {
+	for (unsigned int i = 0; i < archetype.Count(); i++) {
 		std::cout << archetype.Hashes[i] << "\n" << archetype.Sizes[i] << "\n" << archetype.Names[i] << "\n";
 	}
 
@@ -88,14 +88,14 @@ int main()
 	auto iter = group.GetComponentArray<Health>();
 	auto entityIter = group.GetEntityArray();
 	
-	for (int i = 0; i < iter.m_Chunks.size(); i++) {
+	for (unsigned int i = 0; i < iter.m_Chunks.size(); i++) {
 		std::cout << iter.m_MaxIndex[i] << std::endl;
 		std::cout << iter.m_TypeIndex[i] << std::endl;
 		std::cout << "" << std::endl;
 	}
 
-	std::cout << "Number of matched entities: " << iter.Length << std::endl;
-	for (int i = 0; i < iter.Length; i++) {
+	std::cout << "Number of matched entities: " << iter.Length() << std::endl;
+	for (int i = 0; i < iter.Length(); i++) {
 		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
 		std::cout << "Entity " << i << " health: " << entityManager.GetComponentData<Health>(entityIter[i]).Value << "\n";
 	}
@@ -110,8 +110,8 @@ int main()
 	iter = group.GetComponentArray<Health>();
 	entityIter = group.GetEntityArray();
 
-	std::cout << "After remove component." << iter.Length << "\n";
-	for (int i = 0; i < iter.Length; i++) {
+	std::cout << "After remove component." << iter.Length() << "\n";
+	for (int i = 0; i < iter.Length(); i++) {
 		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
 		std::cout << "Entity " << i << " health: " << entityManager.GetComponentData<Health>(entityIter[i]).Value << "\n";
 	}

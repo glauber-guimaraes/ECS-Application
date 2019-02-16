@@ -8,23 +8,27 @@ struct EntityArchetype
 {
 public:
 	size Size;
-	u32 Count;
+	u32 m_Count;
 	std::vector<typesize> Sizes;
 	std::vector<hash> Hashes;
 	std::vector<std::string> Names;
 
 	EntityArchetype() {
 		Size = 0;
-		Count = 0;
+		m_Count = 0;
+	}
+
+	u32 Count() {
+		return m_Count;
 	}
 
 	friend std::ostream& operator<<(std::ostream& stream, const EntityArchetype& archetype) {
 		std::string s = "";
 
-		for (unsigned int i = 0; i < archetype.Count; i++) {
+		for (unsigned int i = 0; i < archetype.m_Count; i++) {
 			s += archetype.Names[i];
 
-			if (i != archetype.Count - 1) {
+			if (i != archetype.m_Count - 1) {
 				s += "_";
 			}
 		}
@@ -36,7 +40,7 @@ public:
 	EntityArchetype(u32 typeCount, std::initializer_list<hash> hashes, std::initializer_list<typesize> sizes, std::initializer_list<std::string> names = {})
 	{
 		Size = std::accumulate(sizes.begin(), sizes.end(), (size)0);
-		Count = typeCount;
+		m_Count = typeCount;
 		Sizes = sizes;
 		Hashes = hashes;
 		Names = names;
@@ -47,7 +51,7 @@ public:
 
 	EntityArchetype(const EntityArchetype& other) {
 		Size = other.Size;
-		Count = other.Count;
+		m_Count = other.m_Count;
 		Sizes = other.Sizes;
 		Hashes = other.Hashes;
 		Names = other.Names;
@@ -55,7 +59,7 @@ public:
 
 	void AddTypes(std::initializer_list<hash> hashes, std::initializer_list<typesize> sizes, std::initializer_list<std::string> names) {
 		Size += std::accumulate(Sizes.begin(), Sizes.end(), (size)0);
-		Count += (u32)hashes.size();
+		m_Count += (u32)hashes.size();
 		this->Hashes.insert(this->Hashes.end(), hashes);
 		this->Sizes.insert(this->Sizes.end(), sizes);
 		this->Names.insert(this->Names.end(), names);
@@ -65,7 +69,7 @@ public:
 
 	void AddType(hash hash, typesize size, std::string name) {
 		Size += size;
-		Count += 1;
+		m_Count += 1;
 		this->Hashes.insert(this->Hashes.end(), hash);
 		this->Sizes.insert(this->Sizes.end(), size);
 		this->Names.insert(this->Names.end(), name);
@@ -84,7 +88,7 @@ public:
 		if (index == -1)
 			return;
 
-		Count -= 1;
+		m_Count -= 1;
 		Size -= typeSize;
 
 		Hashes.erase(Hashes.begin() + index);
@@ -93,15 +97,15 @@ public:
 	}
 
 	void SortTypesByHash() {
-		if (Count == 0)
+		if (m_Count == 0)
 			return;
 
 		u32 currIndex = 0;
 		u32 smallerIndex = 0;
 
-		while (currIndex < Count) {			
+		while (currIndex < m_Count) {			
 			// Find the smallest hash with higher index.
-			for (u32 i = currIndex + 1; i < Count; i++) {
+			for (u32 i = currIndex + 1; i < m_Count; i++) {
 				if (Hashes[smallerIndex] > Hashes[i])
 					smallerIndex = i;
 			}
@@ -123,7 +127,7 @@ public:
 		if (Size != other.Size)
 			return false;
 
-		if (Count != other.Count)
+		if (m_Count != other.m_Count)
 			return false;
 
 		// We don't need to check sizes and names, only hashes should be enough
@@ -134,10 +138,10 @@ public:
 	}
 
 	bool operator<(const EntityArchetype& other) const {
-		if (Count < other.Count)
+		if (m_Count < other.m_Count)
 			return true;
 
-		if (Count > other.Count)
+		if (m_Count > other.m_Count)
 			return false;
 
 		if (Size < other.Size)
@@ -146,7 +150,7 @@ public:
 		if (Size > other.Size)
 			return false;
 
-		for (u32 i = 0; i < Count; i++) {
+		for (u32 i = 0; i < m_Count; i++) {
 			if (Hashes[i] < other.Hashes[i])
 				return true;
 			if (Hashes[i] > other.Hashes[i])
@@ -158,12 +162,12 @@ public:
 	}
 
 	bool Contains(const EntityArchetype& other) const {
-		if (other.Count > this->Count)
+		if (other.m_Count > this->m_Count)
 			return false;
 
-		for (u32 i = 0; i < other.Count; i++) {
+		for (u32 i = 0; i < other.m_Count; i++) {
 			bool found = false;
-			for (u32 j = 0; j < this->Count; j++) {
+			for (u32 j = 0; j < this->m_Count; j++) {
 				if (other.Hashes[i] == this->Hashes[j]) {
 					found = true;
 					break;
@@ -178,7 +182,7 @@ public:
 	}
 
 	bool Contains(hash typeHash) const {
-		for (u32 i = 0; i < this->Count; i++) {
+		for (u32 i = 0; i < this->m_Count; i++) {
 			if (this->Hashes[i] == typeHash)
 				return true;
 		}
@@ -188,7 +192,7 @@ public:
 
 	int GetComponentIndex(hash componentHash) {
 		int componentIndex = -1;
-		for (u32 i = 0; i < Count; i++) {
+		for (u32 i = 0; i < m_Count; i++) {
 			if (Hashes[i] == componentHash) {
 				componentIndex = i;
 				break;

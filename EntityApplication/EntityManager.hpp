@@ -59,7 +59,7 @@ public:
 	}
 
 	ArchetypeChunk* CreateOrGetChunk(EntityArchetype archetype) {
-		if (archetype.Count == 0)
+		if (archetype.Count() == 0)
 			return NULL;
 
 		if (m_ChunkMap.find(archetype) == m_ChunkMap.end()) {
@@ -132,7 +132,7 @@ public:
 		EntityArchetype srcArchetype = srcChunk->Archetype;
 		EntityArchetype dstArchetype = dstChunk->Archetype;
 
-		for (unsigned int i = 0; i < dstArchetype.Count; i++) {
+		for (unsigned int i = 0; i < dstArchetype.Count(); i++) {
 			hash typeHash = dstArchetype.Hashes[i];
 
 			int srcTypeIndex = srcArchetype.GetComponentIndex(typeHash);
