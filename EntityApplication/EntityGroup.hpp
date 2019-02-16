@@ -55,8 +55,8 @@ public:
 			throw new std::exception();
 		}
 
-		int i = m_MaxIndex.size() - 1;
-		for (; i >= 0; i--) {
+		int i = 0;
+		for (; i < (int)m_MaxIndex.size(); i++) {
 			if (index <= m_MaxIndex[i]) {
 				break;
 			}
@@ -98,8 +98,9 @@ public:
         if (index > (*m_MaxIndex.crbegin())) {
             throw new std::exception();
         }
-        int i = m_MaxIndex.size() - 1;
-        for (; i >= 0; i--) {
+
+		int i = 0;
+        for (; i < (int)m_MaxIndex.size(); i++) {
             if (index <= m_MaxIndex[i]) {
                 break;
             }
@@ -111,7 +112,7 @@ public:
         if (i == 0) {
             indexInChunk = (int)index;
         } else {
-            indexInChunk = (int)index - m_MaxIndex[i - 1];
+            indexInChunk = (int)index - m_MaxIndex[i - 1] - 1;
         }
         
         T* data = (T*)chunk->GetComponentAddress(indexInChunk, typeIndex);
@@ -134,7 +135,7 @@ public:
         int currentIndex = 0;
         for (int i = 0; i < m_MatchingArchetypes.size(); i++) {
             ArchetypeChunk* chunk = m_MatchingArchetypes[i];
-            currentIndex += chunk->Count();
+            currentIndex += (int)chunk->Count();
             int typeIndex = chunk->Archetype.GetComponentIndex(typeid(type).hash_code());
 
             componentArray.m_Chunks.push_back(chunk);
@@ -152,7 +153,7 @@ public:
 		int currentIndex = 0;
 		for (int i = 0; i < m_MatchingArchetypes.size(); i++) {
 			ArchetypeChunk* chunk = m_MatchingArchetypes[i];
-			currentIndex += chunk->Count();
+			currentIndex += (int)chunk->Count();
 
 			entityArray.m_Chunks.push_back(chunk);
 			entityArray.m_MaxIndex.push_back(currentIndex - 1);
