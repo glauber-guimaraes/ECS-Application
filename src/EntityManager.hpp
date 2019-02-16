@@ -211,7 +211,7 @@ public:
 
 			for (auto type : typeFilters) {
 				bool contains = it->first.Contains(type.Hash);
-				bool shouldContain = type.Type == EntityGroupType::Additive;
+				bool shouldContain = type.Type != ComponentAccessMode::Subtractive;
 				if (contains != shouldContain) {
 					failed = true;
 					break;
