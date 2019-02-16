@@ -94,7 +94,7 @@ public:
         m_MaxIndex = other.m_MaxIndex;
         m_TypeIndex = other.m_TypeIndex;
 
-        m_Length = other.Length;
+        m_Length = other.m_Length;
     }
 
 	inline int Length() {
