@@ -40,12 +40,15 @@ int main()
 	EntityArchetype archetype = CreateArchetype<int, float, char, Health>();
 	EntityArchetype archetype2 = CreateArchetype<int, float, Health, char>();
 	std::cout << "Archetypes are : " << (archetype == archetype2 ? "equal\n" : "not equal\n");
+	std::cout << archetype << std::endl;
 
 	for (unsigned int i = 0; i < archetype.Count; i++) {
 		std::cout << archetype.Hashes[i] << "\n" << archetype.Sizes[i] << "\n" << archetype.Names[i] << "\n";
 	}
 
+	std::cout << "..." << std::flush;
 	EntityManager entityManager;
+	std::cout << "..." << std::flush << std::endl;
 
 	Entity e1 = entityManager.CreateEntity();
 	Entity e2 = entityManager.CreateEntity(archetype);
@@ -70,21 +73,12 @@ int main()
 
 	TEST("Entity has Health component", entityManager.HasComponent<Health>(e), "");
 	TEST("Entity doesn't have Double component", entityManager.HasComponent<double>(e) == false, "");
-	/*
-	std::cout << "e2 index in chunk " << entityManager.m_Entities[e2.index].IndexInChunk << "\n";
-	std::cout << "e index in chunk " << entityManager.m_Entities[e.index].IndexInChunk << "\n";
 
-	std::cout << "new index " << entityManager.CreateEntity().index << "\n new index ";
-	std::cout << entityManager.CreateEntity().index << "\n new index ";
-	std::cout << entityManager.CreateEntity().index << "\n new index ";
-	std::cout << entityManager.CreateEntity().index << "\n";
-	std::cout << "e index in chunk " << entityManager.m_Entities[e.index].IndexInChunk << "\n";
-	*/
+	EntityArchetype simpleArc = CreateArchetype<int, float>();
+	Entity simpleE = entityManager.CreateEntity(simpleArc);
+	entityManager.AddComponent<Health>(simpleE, { 5 });
+	std::cout << "After adding component : " << entityManager.GetComponentData<Health>(simpleE).Value << "\n";
 
-	// entityManager.AddComponent<X>(entity);
-	// entityManager.AddComponent(entity, X);
-	// entityManager.RemoveComponent<X>(entity);
-	//
 	TEST_EQUAL("ComponentType returns correct hash code", 
 			typeid(Health).hash_code(), ComponentType::Create<Health>().Hash);
 
@@ -105,4 +99,21 @@ int main()
 		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
 		std::cout << "Entity " << i << " health: " << entityManager.GetComponentData<Health>(entityIter[i]).Value << "\n";
 	}
+
+	entityManager.RemoveComponent<Health>(simpleE);
+	entityManager.AddComponent<char>(simpleE);
+	entityManager.AddComponent<char*>(simpleE);
+
+	group = entityManager.GetEntityGroup(ComponentType::Create<Health>(),
+						ComponentType::Subtractive<double>());
+
+	iter = group.GetComponentArray<Health>();
+	entityIter = group.GetEntityArray();
+
+	std::cout << "After remove component." << iter.Length << "\n";
+	for (int i = 0; i < iter.Length; i++) {
+		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
+		std::cout << "Entity " << i << " health: " << entityManager.GetComponentData<Health>(entityIter[i]).Value << "\n";
+	}
+
 }

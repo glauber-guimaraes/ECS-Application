@@ -2,6 +2,7 @@
 #define ENTITYARCHETYPE_H
 
 #include <algorithm>
+#include <iterator>
 
 struct EntityArchetype
 {
@@ -15,6 +16,21 @@ public:
 	EntityArchetype() {
 		Size = 0;
 		Count = 0;
+	}
+
+	friend std::ostream& operator<<(std::ostream& stream, const EntityArchetype& archetype) {
+		std::string s = "";
+
+		for (unsigned int i = 0; i < archetype.Count; i++) {
+			s += archetype.Names[i];
+
+			if (i != archetype.Count - 1) {
+				s += "_";
+			}
+		}
+
+		stream << s;
+		return stream;
 	}
 
 	EntityArchetype(u32 typeCount, std::initializer_list<hash> hashes, std::initializer_list<typesize> sizes, std::initializer_list<std::string> names = {})
@@ -35,6 +51,45 @@ public:
 		Sizes = other.Sizes;
 		Hashes = other.Hashes;
 		Names = other.Names;
+	}
+
+	void AddTypes(std::initializer_list<hash> hashes, std::initializer_list<typesize> sizes, std::initializer_list<std::string> names) {
+		Size += std::accumulate(Sizes.begin(), Sizes.end(), (size)0);
+		Count += (u32)hashes.size();
+		this->Hashes.insert(this->Hashes.end(), hashes);
+		this->Sizes.insert(this->Sizes.end(), sizes);
+		this->Names.insert(this->Names.end(), names);
+
+		SortTypesByHash();
+	}
+
+	void AddType(hash hash, typesize size, std::string name) {
+		Size += size;
+		Count += 1;
+		this->Hashes.insert(this->Hashes.end(), hash);
+		this->Sizes.insert(this->Sizes.end(), size);
+		this->Names.insert(this->Names.end(), name);
+
+		SortTypesByHash();
+	}
+
+	template<typename T>
+	void RemoveType() {
+		RemoveTypeInternal(typeid(T).hash_code(), sizeof(T));
+	}
+
+	void RemoveTypeInternal(hash typeHash, typesize typeSize) {
+		int index = GetComponentIndex(typeHash);
+
+		if (index == -1)
+			return;
+
+		Count -= 1;
+		Size -= typeSize;
+
+		Hashes.erase(Hashes.begin() + index);
+		Sizes.erase(Sizes.begin() + index);
+		Names.erase(Names.begin() + index);
 	}
 
 	void SortTypesByHash() {
@@ -131,7 +186,7 @@ public:
 		return false;
 	}
 
-	u32 GetComponentIndex(hash componentHash) {
+	int GetComponentIndex(hash componentHash) {
 		int componentIndex = -1;
 		for (u32 i = 0; i < Count; i++) {
 			if (Hashes[i] == componentHash) {

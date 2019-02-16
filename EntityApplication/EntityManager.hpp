@@ -63,7 +63,7 @@ public:
 			return NULL;
 
 		if (m_ChunkMap.find(archetype) == m_ChunkMap.end()) {
-			std::cout << "Archetype is not defined, making one.";
+			std::cout << "Archetype (" << archetype << ") is not defined, making one.";
 			ArchetypeChunk* result = new ArchetypeChunk();
 			result->Alloc(archetype);
 			m_ChunkMap[archetype] = result;
@@ -72,14 +72,79 @@ public:
 		return m_ChunkMap[archetype];
 	}
 
-	template<typename T>
-	void AddComponent(Entity entity, T data) {
-
+	template<typename T, typename std::enable_if<std::is_default_constructible<T>::value, int>::type = 0>
+	void AddComponent(Entity entity) {
+		AddComponent(entity, T());
 	}
 
 	template<typename T>
-	void RemoveComponent() {
+	void AddComponent(Entity entity, T data) {
+		EntityData entityData = m_Entities[entity.index];
+		ArchetypeChunk* oldChunk = entityData.Chunk;
+		int oldIndex = entityData.IndexInChunk;
 
+		EntityArchetype newArchetype(oldChunk->Archetype);
+		newArchetype.AddType(typeid(T).hash_code(), sizeof(T), typeid(T).name());
+
+		ArchetypeChunk* newChunk = CreateOrGetChunk(newArchetype);
+		int newIndex = newChunk->ReserveEntity(entity.index);
+
+		MoveEntityData(oldChunk, oldIndex, newChunk, newIndex);
+		m_Entities[entity.index].Chunk = newChunk;
+		m_Entities[entity.index].IndexInChunk = newIndex;
+
+		SetComponentData(entity, data);
+
+		bool moved;
+		u32 movedIndex = oldChunk->RemoveEntity(oldIndex, &moved);
+		if (moved) {
+			m_Entities[movedIndex].IndexInChunk = oldIndex;
+		}
+	}
+
+	template<typename T>
+	void RemoveComponent(Entity entity) {
+		EntityData entityData = m_Entities[entity.index];
+		ArchetypeChunk* oldChunk = entityData.Chunk;
+		int oldIndex = entityData.IndexInChunk;
+
+		if (oldChunk->Archetype.GetComponentIndex(typeid(T).hash_code()) == -1)
+			return;
+
+		EntityArchetype newArchetype(oldChunk->Archetype);
+		newArchetype.RemoveType<T>();
+
+		ArchetypeChunk* newChunk = CreateOrGetChunk(newArchetype);
+		int newIndex = newChunk->ReserveEntity(entity.index);
+
+		MoveEntityData(oldChunk, oldIndex, newChunk, newIndex);
+		m_Entities[entity.index].Chunk = newChunk;
+		m_Entities[entity.index].IndexInChunk = newIndex;
+
+		bool moved;
+		u32 movedIndex = oldChunk->RemoveEntity(oldIndex, &moved);
+		if (moved) {
+			m_Entities[movedIndex].IndexInChunk = oldIndex;
+		}
+	}
+
+	void MoveEntityData(ArchetypeChunk* srcChunk, int srcIndex, ArchetypeChunk* dstChunk, int dstIndex) {
+		EntityArchetype srcArchetype = srcChunk->Archetype;
+		EntityArchetype dstArchetype = dstChunk->Archetype;
+
+		for (unsigned int i = 0; i < dstArchetype.Count; i++) {
+			hash typeHash = dstArchetype.Hashes[i];
+
+			int srcTypeIndex = srcArchetype.GetComponentIndex(typeHash);
+			if (srcTypeIndex == -1)
+				continue;
+
+			size_t typeSize = dstArchetype.Sizes[i];
+
+			void* dst = srcChunk->GetComponentAddress(srcIndex, srcTypeIndex);
+			void* src = dstChunk->GetComponentAddress(dstIndex, i);
+			memcpy(dst, src, typeSize);
+		}
 	}
 
 	template<typename T>
@@ -98,6 +163,7 @@ public:
 		*address = data;
 	}
 
+	// TODO: Check entity version to verify this entity reference is up-to-date.
 	template<typename T>
 	T GetComponentData(Entity entity) {
 		ArchetypeChunk* Chunk = m_Entities[entity.index].Chunk;
@@ -138,6 +204,10 @@ public:
 		std::vector<ArchetypeChunk*> chunks;
 		for (auto it = m_ChunkMap.begin(); it != m_ChunkMap.end(); it++) {
 			bool failed = false;
+
+			// Don't add empty chunks.
+			if (it->second->Count() == 0)
+				continue;
 
 			for (auto type : typeFilters) {
 				bool contains = it->first.Contains(type.Hash);
