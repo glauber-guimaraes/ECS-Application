@@ -15,7 +15,10 @@ public:
 	u32 LastIndex;
 
 	ArchetypeChunk() {
-		Data = malloc(ChunkSize);
+	}
+
+	~ArchetypeChunk() {
+		free(Data);
 	}
 
 	inline size_t Count() {
@@ -68,6 +71,7 @@ public:
 
 	void Alloc(EntityArchetype archetype) {
 		this->Archetype = archetype;
+		Data = malloc(ChunkSize);
 
 		TotalEntities = (int)std::floor((float)ChunkSize / (archetype.Size + sizeof(u32)));
 		std::cout << "Allocating space for " << TotalEntities << " entities\n";
