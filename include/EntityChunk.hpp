@@ -1,6 +1,9 @@
 #ifndef ARCHETYPECHUNK_H
 #define ARCHETYPECHUNK_H
 
+#include <cmath>
+#include <cstring>
+
 class ArchetypeChunk
 {
 public:

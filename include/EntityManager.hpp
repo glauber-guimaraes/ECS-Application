@@ -3,6 +3,9 @@
 
 #include "EntityGroup.hpp"
 
+#include <cstring>
+#include <map>
+#include <memory>
 #include <vector>
 
 class EntityManager

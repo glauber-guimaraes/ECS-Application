@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <iterator>
+#include <numeric> // accumulate
+#include <vector>
 
 struct EntityArchetype
 {
