@@ -1,6 +1,8 @@
 #ifndef ENTITYARCHETYPE_H
 #define ENTITYARCHETYPE_H
 
+#include "Types.hpp"
+
 #include <algorithm>
 #include <iterator>
 
