@@ -1,15 +1,4 @@
 #include <iostream>
-#include <type_traits>
-#include <ctype.h>
-#include <numeric>
-#include <vector>
-#include <cstring>
-#include <string>
-#include <algorithm>
-#include <map>
-#include <cassert>
-#include <cmath>
-#include <memory>
 
 #include "Entity.hpp"
 #include "EntityArchetype.hpp"
@@ -24,19 +13,8 @@ struct Health {
 	float Value;
 };
 
-#define TEST_PRINT_NAME(name) std::cout << "[TEST] " << name << "..............";
-#define TEST_PRINT_PASSED std::cout << "passed.\n";
-#define TEST_PRINT_FAILED(text) std::cout << "failed. " << text << std::endl;
-#define TEST(name, assertion, failureText) TEST_PRINT_NAME(name) \
-												 if (assertion) { TEST_PRINT_PASSED } else { TEST_PRINT_FAILED(failureText) }
-#define TEST_EQUAL(name, expected, result) TEST_PRINT_NAME(name) \
-												if (expected == result) { TEST_PRINT_PASSED } \
-												else { std::cout << "Failed. Expected " << expected << " got " << result << std::endl; }
-
 int main()
 {
-    std::cout << "Hello World!\n";
-
 	EntityArchetype archetype = CreateArchetype<int, float, char, Health>();
 	EntityArchetype archetype2 = CreateArchetype<int, float, Health, char>();
 	std::cout << "Archetypes are : " << (archetype == archetype2 ? "equal\n" : "not equal\n");
@@ -67,20 +45,10 @@ int main()
 
 	std::cout << "Exists " << entityManager.Exists(e) << entityManager.Exists(e2) << entityManager.Exists(e1) << std::endl;
 
-	std::cout << "------------ Tests ------------\n\n";
-	TEST("Archetype with different component order are the same", archetype == archetype2, "");
-	TEST("Existing entity exists", entityManager.Exists(e), "");
-
-	TEST("Entity has Health component", entityManager.HasComponent<Health>(e), "");
-	TEST("Entity doesn't have Double component", entityManager.HasComponent<double>(e) == false, "");
-
 	EntityArchetype simpleArc = CreateArchetype<int, float>();
 	Entity simpleE = entityManager.CreateEntity(simpleArc);
 	entityManager.AddComponent<Health>(simpleE, { 5 });
 	std::cout << "After adding component : " << entityManager.GetComponentData<Health>(simpleE).Value << "\n";
-
-	TEST_EQUAL("ComponentType returns correct hash code", 
-			typeid(Health).hash_code(), ComponentType::Create<Health>().Hash);
 
 	EntityGroup group = entityManager.GetEntityGroup(ComponentType::Create<Health>(), 
 						ComponentType::Subtractive<double>());
@@ -110,7 +78,7 @@ int main()
 	iter = group.GetComponentArray<Health>();
 	entityIter = group.GetEntityArray();
 
-	std::cout << "After remove component." << iter.Length() << "\n";
+	std::cout << "After remove component, number of matched entities is: " << iter.Length() << "\n";
 	for (int i = 0; i < iter.Length(); i++) {
 		std::cout << "Entity " << i << " health: " << iter[i].Value << "\n";
 		std::cout << "Entity " << i << " health: " << entityManager.GetComponentData<Health>(entityIter[i]).Value << "\n";
