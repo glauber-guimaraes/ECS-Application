@@ -25,15 +25,17 @@ public:
 	}
 
 	friend std::ostream& operator<<(std::ostream& stream, const EntityArchetype& archetype) {
-		std::string s = "";
+		std::string s = "Archetype(";
 
 		for (unsigned int i = 0; i < archetype.m_Count; i++) {
 			s += archetype.Names[i];
 
 			if (i != archetype.m_Count - 1) {
-				s += "_";
+				s += ", ";
 			}
 		}
+
+		s += ")";
 
 		stream << s;
 		return stream;
