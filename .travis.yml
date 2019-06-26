@@ -1,6 +1,12 @@
 language: cpp
 sudo: required
 dist: trusty
+addons:
+  apt:
+    packages:
+      - cmake-data
+      - cmake
 
 script:
-  - make
+  - mkdir build && cd build
+  - cmake .. && make
