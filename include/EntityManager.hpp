@@ -118,17 +118,22 @@ public:
 		newArchetype.RemoveType<T>();
 
 		ArchetypeChunk* newChunk = CreateOrGetChunk(newArchetype);
-		int newIndex = newChunk->ReserveEntity(entity.index);
+		int newIndex = 0;
 
-		MoveEntityData(oldChunk, oldIndex, newChunk, newIndex);
+		if (newChunk) {
+			newIndex = newChunk->ReserveEntity(entity.index);
+
+			MoveEntityData(oldChunk, oldIndex, newChunk, newIndex);
+
+			bool moved;
+			u32 movedIndex = oldChunk->RemoveEntity(oldIndex, &moved);
+			if (moved) {
+				m_Entities[movedIndex].IndexInChunk = oldIndex;
+			}
+		}
+
 		m_Entities[entity.index].Chunk = newChunk;
 		m_Entities[entity.index].IndexInChunk = newIndex;
-
-		bool moved;
-		u32 movedIndex = oldChunk->RemoveEntity(oldIndex, &moved);
-		if (moved) {
-			m_Entities[movedIndex].IndexInChunk = oldIndex;
-		}
 	}
 
 	void MoveEntityData(ArchetypeChunk* srcChunk, int srcIndex, ArchetypeChunk* dstChunk, int dstIndex) {
@@ -152,10 +157,17 @@ public:
 
 	template<typename T>
 	bool HasComponent(Entity entity) {
-		if (m_Entities[entity.index].Version != entity.Version)
+		if (m_Entities[entity.index].Version != entity.Version ||
+			m_Entities[entity.index].Version == 0)
 			return false;
 
-		return m_Entities[entity.index].Chunk->Archetype.Contains(typeid(T).hash_code());
+		ArchetypeChunk* chunk = m_Entities[entity.index].Chunk;
+		if (chunk) {
+			return m_Entities[entity.index].Chunk->Archetype.Contains(typeid(T).hash_code());
+		} else {
+			// Entity is empty.
+			return false;
+		}
 	}
 
 	template<typename T>
