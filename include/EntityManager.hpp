@@ -168,11 +168,23 @@ public:
 
 	// TODO: Check entity version to verify this entity reference is up-to-date.
 	template<typename T>
-	T GetComponentData(Entity entity) {
+	T& GetComponentData(Entity entity) &{
+		T* data = (T*)GetComponentDataPointer(entity, typeid(T).hash_code());
+		return (*data);
+	}
+
+	// TODO: Check entity version to verify this entity reference is up-to-date.
+	template<typename T>
+	T GetComponentData(Entity entity) &&{
+		T* data = (T*)GetComponentDataPointer(entity, typeid(T).hash_code());
+		return *data;
+	}
+
+	void* GetComponentDataPointer(Entity entity, hash componentHash) {
 		ArchetypeChunk* Chunk = m_Entities[entity.index].Chunk;
 		EntityArchetype archetype = m_Entities[entity.index].Chunk->Archetype;
-		T* data = (T*)Chunk->GetComponentAddress(m_Entities[entity.index].IndexInChunk, archetype.GetComponentIndex(typeid(T).hash_code()));
-		return *data;
+		int componentIndex = archetype.GetComponentIndex(componentHash);
+		return Chunk->GetComponentAddress(m_Entities[entity.index].IndexInChunk, componentIndex);
 	}
 
 	void DestroyEntity(Entity entity) {

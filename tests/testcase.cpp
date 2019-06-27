@@ -61,6 +61,30 @@ TEST_CASE("EntityManager.HasComponent tests")
     }
 }
 
+TEST_CASE("Component value editing")
+{
+	EntityManager entityManager;
+
+	auto e = entityManager.CreateEntity(CreateArchetype<int>());
+	entityManager.SetComponentData<int>(e, 0);
+
+	SECTION("Get/Set combination") {
+		int value = entityManager.GetComponentData<int>(e);
+		value += 5;
+
+		entityManager.SetComponentData<int>(e, value);
+
+		REQUIRE(entityManager.GetComponentData<int>(e) == 5);
+	}
+
+	SECTION("Return by reference") {
+		int& i = entityManager.GetComponentData<int>(e);
+		i += 5;
+
+		REQUIRE(entityManager.GetComponentData<int>(e) == 5);
+	}
+}
+
 void foo() {
 	EntityManager entityManager;
 
