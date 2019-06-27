@@ -50,7 +50,7 @@ TEST_CASE("EntityManager.HasComponent tests")
 {
     EntityManager entityManager;
 
-    auto e = entityManager.CreateEntity(CreateArchetype<int>());
+    auto e = entityManager.CreateEntity(CreateArchetype<int, float>());
 
     SECTION("Entity has valid component") {
         REQUIRE(entityManager.HasComponent<int>(e));
@@ -59,6 +59,39 @@ TEST_CASE("EntityManager.HasComponent tests")
     SECTION("Entity doesn't have invalid component") {
         REQUIRE_FALSE(entityManager.HasComponent<char>(e));
     }
+
+	SECTION("Entity doesn't have component after it is removed") {
+		entityManager.RemoveComponent<int>(e);
+		REQUIRE_FALSE(entityManager.HasComponent<int>(e));
+	}
+}
+
+TEST_CASE("Create entities with tag components")
+{
+	EntityManager entityManager;
+
+	struct TagComponent {};
+	entityManager.CreateEntity(CreateArchetype<TagComponent>());
+}
+
+TEST_CASE("Remove component tests")
+{
+	EntityManager entityManager;
+
+	SECTION("Remove from multi-component archetype") {
+		auto e = entityManager.CreateEntity(CreateArchetype<int,float>());
+		entityManager.RemoveComponent<float>(e);
+
+		REQUIRE(entityManager.HasComponent<int>(e));
+		REQUIRE_FALSE(entityManager.HasComponent<float>(e));
+	}
+
+	SECTION("Remove from single-component archetype") {
+		auto e = entityManager.CreateEntity(CreateArchetype<float>());
+		// This creates an empty entity.
+		entityManager.RemoveComponent<float>(e);
+		REQUIRE_FALSE(entityManager.HasComponent<float>(e));
+	}
 }
 
 TEST_CASE("Component value editing")
@@ -85,6 +118,13 @@ TEST_CASE("Component value editing")
 	}
 }
 
+TEST_CASE("Can create and destroy entities") 
+{
+	EntityManager entityManager;
+	auto e = entityManager.CreateEntity();
+	entityManager.DestroyEntity(e);
+}
+
 void foo() {
 	EntityManager entityManager;
 
@@ -105,8 +145,6 @@ void foo() {
 	entityManager.SetComponentData<Health>(e, { 10 });
 
 	std::cout << entityManager.GetComponentData<int>(e) << "\ne index ";
-
-	std::cout << "Exists " << entityManager.Exists(e) << entityManager.Exists(e2) << entityManager.Exists(e1) << std::endl;
 	EntityArchetype simpleArc = CreateArchetype<int, float>();
 	Entity simpleE = entityManager.CreateEntity(simpleArc);
 	entityManager.AddComponent<Health>(simpleE, { 5 });
